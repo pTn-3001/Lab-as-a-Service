@@ -1,0 +1,76 @@
+{
+  "name": "lab-service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/backend/lab-service/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "prisma-generate": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "outputs": ["{projectRoot}/src/generated/prisma-client"],
+      "options": {
+        "command": "prisma generate",
+        "cwd": "apps/backend/lab-service"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "webpack-cli build",
+        "args": ["--node-env=production"],
+        "cwd": "apps/backend/lab-service"
+      },
+      "configurations": {
+        "development": {
+          "args": ["--node-env=development"]
+        }
+      }
+    },
+    "prune-lockfile": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "executor": "@nx/js:prune-lockfile",
+      "outputs": [
+        "{workspaceRoot}/dist/apps/backend/lab-service/package.json",
+        "{workspaceRoot}/dist/apps/backend/lab-service/pnpm-lock.yaml"
+      ],
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "copy-workspace-modules": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "outputs": [
+        "{workspaceRoot}/dist/apps/backend/lab-service/workspace_modules"
+      ],
+      "executor": "@nx/js:copy-workspace-modules",
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "prune": {
+      "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
+      "executor": "nx:noop"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["prisma-generate", "build"],
+      "options": {
+        "buildTarget": "lab-service:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "lab-service:build:development"
+        },
+        "production": {
+          "buildTarget": "lab-service:build:production"
+        }
+      }
+    }
+  }
+}

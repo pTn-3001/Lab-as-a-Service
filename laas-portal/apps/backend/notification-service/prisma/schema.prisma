@@ -1,0 +1,11 @@
+// Notification Service Database Schema
+// Domain: Email, SMS, push notifications, in-app alerts, notification preferences
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}

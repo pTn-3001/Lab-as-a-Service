@@ -1,0 +1,452 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LabTemplateStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LabAccessType {
+  PUBLIC      // Visible and startable by all users
+  RESTRICTED  // Only users with a UserLabAccess grant may start a session
+}
+
+enum ModuleStatus {
+  DRAFT
+  VALID
+  INVALID
+  ARCHIVED
+}
+
+enum ArtifactType {
+  LAB_DEFINITION_JSON
+  HEAT_TEMPLATE
+  CLOUD_INIT
+  VALIDATION_REPORT
+}
+
+enum ArtifactScope {
+  LAB
+  MODULE
+  NODE
+}
+
+enum RenderStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum ValidationStatus {
+  NOT_VALIDATED
+  VALID
+  INVALID
+}
+
+model LabTemplate {
+  id               String             @id @default(cuid())
+  code             String             @unique
+  name             String
+  slug             String             @unique
+  description      String?
+  category         String?
+  difficulty       String?
+
+  status           LabTemplateStatus  @default(DRAFT)
+  accessType       LabAccessType      @default(PUBLIC)
+  version          Int                @default(1)
+
+  tags             Json?
+  metadata         Json?
+
+  validationStatus ValidationStatus   @default(NOT_VALIDATED)
+  renderStatus     RenderStatus       @default(PENDING)
+
+  lastValidatedAt  DateTime?
+  lastRenderedAt   DateTime?
+
+  createdById      String
+  createdBySnapshot Json?
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  deletedAt        DateTime?
+
+  modules          Module[]
+  artifacts        Artifact[]
+  validationRuns   ValidationRun[]
+  renderRuns       RenderRun[]
+  userAccess       UserLabAccess[]
+  classLabs        ClassLab[]
+
+  @@index([status])
+  @@index([createdById])
+  @@index([accessType])
+}
+
+model Module {
+  id                String            @id @default(cuid())
+
+  labTemplateId     String
+  labTemplate       LabTemplate       @relation(fields: [labTemplateId], references: [id], onDelete: Cascade)
+
+  name              String
+  description       String?
+  orderNo           Int
+
+  estimatedMinutes  Int?
+  objectives        Json?
+
+  status            ModuleStatus      @default(DRAFT)
+  validationStatus  ValidationStatus  @default(NOT_VALIDATED)
+
+  definitionJson    Json
+  normalizedJson    Json?
+
+  createdById       String
+  createdBySnapshot Json?
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime?
+
+  artifacts         Artifact[]
+  validationRuns    ValidationRun[]
+  labSessions       LabSession[]
+
+  @@unique([labTemplateId, orderNo])
+  @@index([labTemplateId])
+}
+
+model Artifact {
+  id               String         @id @default(cuid())
+
+  labTemplateId    String?
+  moduleId         String?
+  labTemplate      LabTemplate?   @relation(fields: [labTemplateId], references: [id], onDelete: SetNull)
+  module           Module?        @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+
+  type             ArtifactType
+  scope            ArtifactScope
+
+  nodeName         String?
+
+  fileName         String?
+
+  contentText      String?
+  storageUrl       String?
+
+  metadata         Json?
+
+  createdAt        DateTime       @default(now())
+
+  @@index([labTemplateId])
+  @@index([moduleId])
+  @@index([scope, nodeName])
+}
+
+model ValidationRun {
+  id               String            @id @default(cuid())
+
+  labTemplateId    String?
+  moduleId         String?
+  labTemplate      LabTemplate?      @relation(fields: [labTemplateId], references: [id], onDelete: SetNull)
+  module           Module?           @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+
+  status           ValidationStatus
+
+  reportJson       Json?
+
+  createdAt        DateTime          @default(now())
+
+  @@index([labTemplateId])
+  @@index([moduleId])
+}
+
+model RenderRun {
+  id               String         @id @default(cuid())
+
+  labTemplateId    String
+  labTemplate      LabTemplate    @relation(fields: [labTemplateId], references: [id], onDelete: Cascade)
+
+  status           RenderStatus
+  errorMessage     String?
+
+  inputSnapshot    Json?
+  outputSnapshot   Json?
+
+  createdAt        DateTime       @default(now())
+
+  @@index([labTemplateId])
+}
+
+model UserLabAccess {
+  id              String       @id @default(uuid())
+  userId          String
+  labTemplateId   String
+  labTemplate     LabTemplate  @relation(fields: [labTemplateId], references: [id], onDelete: Cascade)
+  grantedAt       DateTime     @default(now())
+  grantedBy       String?      // "admin:<userId>" or "payment:<gatewayRef>"
+  expiresAt       DateTime?    // null = permanent
+
+  @@unique([userId, labTemplateId])
+  @@index([userId])
+  @@index([labTemplateId])
+}
+
+enum ImageStatus {
+  DRAFT
+  PENDING_VALIDATION
+  APPROVED
+  PUBLISHED
+  DEPRECATED
+  ARCHIVED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SessionStatus {
+  STARTING
+  RUNNING
+  STOPPED
+  EXPIRED
+}
+
+model ProvisioningProfile {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  metadata    Json?
+
+  createdById String
+  createdAt   DateTime @default(now())
+
+  imageVersions ImageVersion[]
+}
+
+model Image {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  description String?
+
+  status      ImageStatus @default(DRAFT)
+
+  createdById String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  versions    ImageVersion[]
+}
+
+model ImageVersion {
+  id                     String   @id @default(cuid())
+  imageId                String
+  image                  Image    @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  versionNumber          Int      @default(1)
+  glanceImageId          String?  // Glance image UUID when published
+  storageUrl             String?  // location of the stored raw image / artifact
+  metadata               Json?
+
+  provisioningProfileId  String? 
+  provisioningProfile    ProvisioningProfile? @relation(fields: [provisioningProfileId], references: [id], onDelete: SetNull)
+
+  status                 ImageStatus @default(PENDING_VALIDATION)
+
+  createdById            String
+  createdAt              DateTime @default(now())
+
+  diffs                  ImageDiff[]
+  approvals              ImageApproval[]
+  labSessions            LabSession[]
+}
+
+model ImageDiff {
+  id               String   @id @default(cuid())
+  imageVersionId   String
+  imageVersion     ImageVersion @relation(fields: [imageVersionId], references: [id], onDelete: Cascade)
+
+  baseVersionId    String?  // optional base image version id used for diff
+  analysisResult   Json?    // libguestfs analysis result / metadata
+  storageUrl       String?  // optional link to diff artifact
+
+  createdAt        DateTime @default(now())
+}
+
+model ImageApproval {
+  id              String   @id @default(cuid())
+  imageVersionId  String
+  imageVersion    ImageVersion @relation(fields: [imageVersionId], references: [id], onDelete: Cascade)
+
+  approverId      String
+  status          ApprovalStatus @default(PENDING)
+  comment         String?
+  createdAt       DateTime @default(now())
+}
+
+model GuacamoleConnection {
+  id           String   @id @default(cuid())
+  sessionId    String?  
+  session      LabSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  label        String?
+  protocol     String   // e.g., ssh
+  host         String
+  port         Int
+  username     String?
+  passwordRef  String?  // reference to secret storage
+  metadata     Json?
+  createdAt    DateTime @default(now())
+}
+
+model LabSession {
+  id                 String      @id @default(cuid())
+  moduleId           String?
+  module             Module?     @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+
+  userId             String
+  imageVersionId     String?
+  imageVersion       ImageVersion? @relation(fields: [imageVersionId], references: [id], onDelete: SetNull)
+
+  openstackStackId   String?     // Heat Stack ID
+  openstackStackName String?     // Heat Stack name (needed for resource polling)
+  sshNatHost         String?     // Shared floating IP for NAT port forwarding
+  vmTerminals        Json?       // [{vmName, floatingIp, ttydPort}] — populated after NAT setup
+  status             SessionStatus @default(STARTING)
+  startedAt          DateTime?
+  endedAt            DateTime?
+  expiresAt          DateTime?
+
+  guacConnections    GuacamoleConnection[]
+  CheckpointProgress CheckpointProgress[]
+
+  createdAt          DateTime @default(now())
+
+  @@index([moduleId])
+  @@index([userId])
+}
+
+enum CheckpointProgressStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model CheckpointProgress {
+  id           String                   @id @default(cuid())
+  sessionId    String
+  session      LabSession               @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  checkpointId String
+  status       CheckpointProgressStatus @default(PENDING)
+  completedAt  DateTime?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@unique([sessionId, checkpointId])
+  @@index([sessionId])
+}
+
+enum BuildSessionStatus {
+  STARTING
+  RUNNING
+  PENDING_APPROVAL
+  SNAPSHOTTING
+  COMPLETED
+  REJECTED
+  FAILED
+}
+
+model ImageBuildSession {
+  id               String      @id @default(cuid())
+  userId           String      // Instructor who created this
+
+  baseImageId      String
+  flavorId         String
+  targetImageName  String
+  targetImageDesc  String?
+
+  status           BuildSessionStatus @default(STARTING)
+  
+  openstackStackId String?     // Heat Stack tracking the Temp VM
+  tempServerId     String?     // Nova Server ID (extracted from Stack)
+
+  sshHost          String?     // Floating IP once assigned (persisted to survive page reloads)
+
+  networkType      String?     // 'dhcp' or 'static'
+  cidr             String?     // Subnet CIDR
+  staticIp         String?     // Static IP address
+  vmUsername       String?     // Custom VM login username
+  vmPassword       String?     // Custom VM login password
+
+  // Pending approval data (set when instructor clicks "Đóng gói")
+  pendingImageName       String?
+  pendingImageDesc       String?
+  pendingImageVisibility String?   @default("private")
+
+  // SSH inspection data collected BEFORE VM shutdown (while VM is still ACTIVE).
+  // Saved here so admin can view it via inspectSession even after VM is SHUTOFF.
+  sshInspectionData      Json?
+
+  // Set after admin approves and the OpenStack snapshot is created
+  glanceImageId          String?
+  approvedBy             String?
+  rejectedBy             String?
+  approvalNote           String?
+
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  
+  @@index([userId])
+}
+
+model Lesson {
+  id          String   @id @default(uuid())
+  groupId     String   @map("group_id")
+  title       String
+  description String?
+  content     String?
+  type        String   @default("TEXT")
+  resourceUrl String?  @map("resource_url")
+  orderNo     Int      @map("order_no")
+  isVisible   Boolean  @default(true) @map("is_visible")
+  createdById String?  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  classLabs   ClassLab[]
+
+  @@unique([groupId, orderNo])
+  @@map("lessons")
+}
+
+model ClassLab {
+  id            String    @id @default(uuid())
+  groupId       String    @map("group_id")
+  labTemplateId String    @map("lab_template_id")
+  lessonId      String?   @map("lesson_id")
+  title         String?
+  description   String?
+  deadline      DateTime?
+  isRequired    Boolean   @default(true) @map("is_required")
+  orderNo       Int       @default(0) @map("order_no")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  labTemplate   LabTemplate @relation(fields: [labTemplateId], references: [id])
+  lesson        Lesson?     @relation(fields: [lessonId], references: [id])
+
+  @@unique([groupId, labTemplateId])
+  @@map("class_labs")
+}

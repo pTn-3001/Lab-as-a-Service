@@ -1,0 +1,87 @@
+﻿# Dependencies
+node_modules/
+.pnpm-store/
+jspm_packages/
+
+# Next.js
+.next/
+out/
+
+# Nx & Monorepo build artifacts
+.nx/cache/
+.nx/workspace-data/
+dist/
+tmp/
+out-tsc/
+build/
+
+# Local data & uploads
+local-artifacts/
+**/local-artifacts/
+uploads/
+**/uploads/
+
+# Generated backend code
+**/src/generated/
+
+# TypeScript & Compilers
+*.tsbuildinfo
+.tsbuildinfo
+next-env.d.ts
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment files & Secrets
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# Coverage & testing
+coverage/
+.nyc_output/
+
+# IDEs and Editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*~
+
+# IDE - VSCode (Keep shared project settings, ignore personal/local state)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# Caches
+.cache/
+.sass-cache/
+.eslintcache

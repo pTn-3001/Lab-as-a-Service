@@ -1,0 +1,76 @@
+// Grading Service Database Schema
+// Domain: Lab grades, checkpoint snapshots, per-student per-classLab scores
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma-client"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider        = "postgresql"
+}
+
+/// A grade record for one student on one ClassLab (virtual lab assigned to a class).
+/// Created/updated whenever checkpoint data is synced from lab-service.
+model LabGrade {
+  id            String   @id @default(uuid())
+
+  /// References to entities in other services (not FK — cross-service)
+  classLabId    String   @map("class_lab_id")
+  groupId       String   @map("group_id")
+  studentId     String   @map("student_id")
+  labTemplateId String   @map("lab_template_id")
+  sessionId     String?  @map("session_id")       // lab-service session that produced this grade
+
+  /// Aggregated score
+  earnedPoints  Float    @default(0) @map("earned_points")
+  totalPoints   Float    @default(0) @map("total_points")
+  percentage    Float    @default(0)               // earnedPoints / totalPoints * 100
+
+  /// Checkpoint summary
+  completedCheckpoints Int @default(0) @map("completed_checkpoints")
+  totalCheckpoints     Int @default(0) @map("total_checkpoints")
+
+  /// Status
+  status        String   @default("IN_PROGRESS")   // IN_PROGRESS, COMPLETED, GRADED
+  gradedAt      DateTime? @map("graded_at")
+
+  /// Instructor manual override (optional)
+  manualScore   Float?   @map("manual_score")
+  feedback      String?
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  /// Checkpoint detail snapshots
+  checkpointSnapshots CheckpointSnapshot[]
+
+  @@unique([classLabId, studentId])
+  @@index([groupId])
+  @@index([studentId])
+  @@index([classLabId])
+  @@map("lab_grades")
+}
+
+/// Snapshot of each checkpoint's status for a particular grade.
+/// Populated from lab-service CheckpointProgress data.
+model CheckpointSnapshot {
+  id             String   @id @default(uuid())
+
+  labGradeId     String   @map("lab_grade_id")
+  labGrade       LabGrade @relation(fields: [labGradeId], references: [id], onDelete: Cascade)
+
+  checkpointId   String   @map("checkpoint_id")    // matches checkpoint id in module definition
+  checkpointName String   @map("checkpoint_name")
+  points         Float    @default(0)
+  status         String   @default("PENDING")       // PENDING, COMPLETED, FAILED
+  completedAt    DateTime? @map("completed_at")
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@unique([labGradeId, checkpointId])
+  @@index([labGradeId])
+  @@map("checkpoint_snapshots")
+}

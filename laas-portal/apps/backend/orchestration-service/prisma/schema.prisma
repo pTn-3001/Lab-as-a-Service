@@ -1,0 +1,58 @@
+// Orchestration Service Database Schema
+// Domain: Infrastructure provisioning, VM/container management, networking
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum StackLeaseStatus {
+  ACTIVE
+  RELEASING
+  RELEASED
+  RELEASE_FAILED
+}
+
+model OpenstackIdentityMapping {
+  id                           String   @id @default(uuid()) @db.Uuid
+  platformUserId               String   @unique @map("platform_user_id")
+  keystoneUserId               String   @map("keystone_user_id")
+  keystoneUsername             String   @map("keystone_username")
+  encryptedKeystonePassword    String   @map("encrypted_keystone_password")
+  keystonePasswordIv           String   @map("keystone_password_iv")
+  projectId                    String   @map("project_id")
+  projectName                  String   @map("project_name")
+  createdAt                    DateTime @default(now()) @map("created_at")
+  updatedAt                    DateTime @updatedAt @map("updated_at")
+
+  @@index([keystoneUserId])
+  @@index([projectId])
+  @@map("openstack_identity_mappings")
+}
+
+model HeatStackLease {
+  id                      String           @id @default(uuid()) @db.Uuid
+  platformUserId          String           @map("platform_user_id")
+  keystoneProjectId       String           @map("keystone_project_id")
+  stackName               String           @map("stack_name")
+  stackId                 String           @unique @map("stack_id")
+  floatingIpReserveCount  Int              @default(2) @map("floating_ip_reserve_count")
+  leaseMinutes            Int              @map("lease_minutes")
+  status                  StackLeaseStatus @default(ACTIVE)
+  releaseAttempts         Int              @default(0) @map("release_attempts")
+  releaseErrorMessage     String?          @map("release_error_message")
+  expiresAt               DateTime         @map("expires_at")
+  releasedAt              DateTime?        @map("released_at")
+  createdAt               DateTime         @default(now()) @map("created_at")
+  updatedAt               DateTime         @updatedAt @map("updated_at")
+
+  @@index([platformUserId])
+  @@index([status, expiresAt])
+  @@index([keystoneProjectId])
+  @@map("heat_stack_leases")
+}
+

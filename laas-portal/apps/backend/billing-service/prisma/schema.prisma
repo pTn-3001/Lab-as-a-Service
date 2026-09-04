@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  userId        String
+  userEmail     String?
+  labTemplateId String
+  labName       String
+  amount        Float
+  status        String   @default("SUCCESS") // SUCCESS, FAILED, PENDING
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

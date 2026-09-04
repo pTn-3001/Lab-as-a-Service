@@ -1,0 +1,70 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/backend/orchestration-service-e2e"
+    },
+    {
+      "path": "./apps/backend/notification-service-e2e"
+    },
+    {
+      "path": "./apps/backend/orchestration-service"
+    },
+    {
+      "path": "./apps/backend/notification-service"
+    },
+    {
+      "path": "./apps/backend/billing-service-e2e"
+    },
+    {
+      "path": "./apps/backend/grading-service-e2e"
+    },
+    {
+      "path": "./apps/backend/auth-service-e2e"
+    },
+    {
+      "path": "./apps/backend/user-service-e2e"
+    },
+    {
+      "path": "./apps/backend/api-gateway-e2e"
+    },
+    {
+      "path": "./apps/backend/billing-service"
+    },
+    {
+      "path": "./apps/backend/grading-service"
+    },
+    {
+      "path": "./apps/backend/lab-service-e2e"
+    },
+    {
+      "path": "./apps/backend/auth-service"
+    },
+    {
+      "path": "./apps/backend/user-service"
+    },
+    {
+      "path": "./apps/backend/api-gateway"
+    },
+    {
+      "path": "./apps/backend/lab-service"
+    },
+    {
+      "path": "./libs/shared/common"
+    },
+    {
+      "path": "./libs/shared/config"
+    },
+    {
+      "path": "./libs/shared/utils"
+    },
+    {
+      "path": "./libs/shared/ui"
+    },
+    {
+      "path": "./apps/frontend/web-portal"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "importHelpers": true,
+    "isolatedModules": true,
+    "lib": ["es2022"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2022",
+    "baseUrl": ".",
+    "paths": {
+      "@org/common": ["libs/shared/common/src/index.ts"],
+      "@org/database": ["libs/shared/database/src/index.ts"],
+      "@org/config": ["libs/shared/config/src/index.ts"],
+      "@org/utils": ["libs/shared/utils/src/index.ts"],
+      "@laas-portal/ui": ["libs/shared/ui/src/index.ts"]
+    }
+  }
+}

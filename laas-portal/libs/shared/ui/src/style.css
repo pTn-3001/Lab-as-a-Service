@@ -1,0 +1,82 @@
+/* Style chung cho toàn bộ ứng dụng */
+
+:root {
+  --brand-primary: 21 90% 48%;
+  --brand-secondary: 146 47% 33%;
+
+  --background: 30 20% 98%;
+  --foreground: 222 40% 12%;
+
+  --primary: var(--brand-primary);
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 146 25% 92%;
+  --secondary-foreground: 146 47% 25%;
+
+  --muted: 210 15% 94%;
+  --muted-foreground: 214 10% 43%;
+
+  --accent: 38 60% 95%;
+  --accent-foreground: var(--brand-primary);
+
+  --destructive: 0 80% 55%;
+  --destructive-foreground: 0 0% 100%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 40% 12%;
+
+  --border: 30 15% 88%;
+  --input: 30 15% 90%;
+  --ring: var(--brand-primary);
+
+  --radius: 0.5rem;
+}
+
+.dark {
+}
+
+/* Mọi element có border sẽ dùng màu border mặc định bên trên */
+* {
+  @apply border-border;
+}
+
+/* Màu background và foreground dùng biến mặc định bên trên */
+body {
+  @apply bg-background text-foreground;
+}
+
+/* Premium Table Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background-color: rgb(248 250 252 / 0.4) !important;
+  border-bottom: 1px solid rgba(241, 245, 249, 0.8) !important;
+}
+
+th {
+  padding: 1rem 1.5rem !important;
+  font-weight: 700 !important;
+  color: rgb(148 163 184) !important; /* text-slate-400 */
+  font-size: 10px !important; /* text-[10px] */
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important; /* tracking-widest */
+}
+
+td {
+  padding: 1.25rem 1.5rem !important; /* py-5 px-6 */
+  color: rgb(15 23 42) !important;
+  font-size: 0.875rem !important;
+  border-bottom: 1px solid rgba(241, 245, 249, 0.5) !important;
+  background-color: transparent;
+}
+
+tr {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+tr:hover td {
+  background-color: rgb(248 250 252 / 0.7) !important;
+}

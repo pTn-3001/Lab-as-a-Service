@@ -1,0 +1,67 @@
+{
+  "name": "grading-service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/backend/grading-service/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "webpack-cli build",
+        "args": ["--node-env=production"],
+        "cwd": "apps/backend/grading-service"
+      },
+      "configurations": {
+        "development": {
+          "args": ["--node-env=development"]
+        }
+      }
+    },
+    "prune-lockfile": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "executor": "@nx/js:prune-lockfile",
+      "outputs": [
+        "{workspaceRoot}/dist/apps/backend/grading-service/package.json",
+        "{workspaceRoot}/dist/apps/backend/grading-service/pnpm-lock.yaml"
+      ],
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "copy-workspace-modules": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "outputs": [
+        "{workspaceRoot}/dist/apps/backend/grading-service/workspace_modules"
+      ],
+      "executor": "@nx/js:copy-workspace-modules",
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "prune": {
+      "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
+      "executor": "nx:noop"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "grading-service:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "grading-service:build:development"
+        },
+        "production": {
+          "buildTarget": "grading-service:build:production"
+        }
+      }
+    }
+  }
+}

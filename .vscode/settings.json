@@ -1,0 +1,5 @@
+{
+  "nxConsole.nxWorkspacePath": "laas-portal",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
