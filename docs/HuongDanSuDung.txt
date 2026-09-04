@@ -1,0 +1,83 @@
+﻿================================================================================
+                 HƯỚNG DẪN BIÊN DỊCH VÀ KHỞI CHẠY CHƯƠNG TRÌNH
+================================================================================
+
+Tài liệu này hướng dẫn cách biên dịch (Build) và chạy (Serve) các dịch vụ trong hệ thống
+Lab-as-a-Service ở môi trường phát triển (Development) cũng như môi trường vận hành (Production).
+
+Lưu ý: Mọi câu lệnh bên dưới đều được thực thi tại thư mục gốc chứa mã nguồn:
+   cd MaDeTai/src
+
+--------------------------------------------------------------------------------
+1. KHỞI CHẠY HỆ THỐNG Ở CHẾ ĐỘ PHÁT TRIỂN (DEVELOPMENT MODE)
+--------------------------------------------------------------------------------
+Dự án sử dụng Nx để điều phối các dịch vụ và ứng dụng. Bạn cần khởi chạy các dịch vụ
+backend cùng ứng dụng frontend.
+
+Mở các cửa sổ terminal riêng biệt và chạy các dịch vụ sau tại thư mục 'src':
+
+A. KHỞI CHẠY BACKEND SERVICES:
+- Chạy cổng kết nối API Gateway (Cổng 3000):
+  npx nx serve api-gateway
+
+- Chạy dịch vụ Xác thực & Phân quyền (Auth Service - Cổng 3001):
+  npx nx serve auth-service
+
+- Chạy dịch vụ Quản lý người dùng & khóa học (User Service - Cổng 3002):
+  npx nx serve user-service
+
+- Chạy dịch vụ Vòng đời Lab (Lab Service - Cổng 3003):
+  npx nx serve lab-service
+
+- Chạy dịch vụ Điều phối tài nguyên (Orchestration Service - Cổng 3004):
+  npx nx serve orchestration-service
+
+- Chạy dịch vụ Chấm điểm bài thực hành (Grading Service - Cổng 3005):
+  npx nx serve grading-service
+
+- Chạy dịch vụ Thanh toán & Gói cước (Billing Service - Cổng 3006):
+  npx nx serve billing-service
+
+B. KHỞI CHẠY FRONTEND APPLICATION:
+- Chạy giao diện Web Portal chính (Student, Instructor, Admin - Cổng 4200):
+  npx nx serve web-portal
+
+--------------------------------------------------------------------------------
+2. BIÊN DỊCH HỆ THỐNG CHO VẬN HÀNH (PRODUCTION BUILD)
+--------------------------------------------------------------------------------
+Khi triển khai dự án lên môi trường thực tế (Staging hoặc Production), chạy lệnh sau
+tại thư mục 'src' để biên dịch toàn bộ các ứng dụng cùng một lúc:
+   npx nx run-many -t build
+
+Hoặc biên dịch riêng lẻ từng ứng dụng/dịch vụ cụ thể khi cần thiết:
+   npx nx build web-portal
+   npx nx build api-gateway
+   npx nx build auth-service
+   npx nx build user-service
+   npx nx build lab-service
+   npx nx build orchestration-service
+   npx nx build grading-service
+   npx nx build billing-service
+
+Sau khi biên dịch thành công, các file thực thi sẽ nằm trong thư mục 'src/dist/'.
+Khởi chạy chúng bằng Node.js, ví dụ:
+   node dist/apps/backend/api-gateway/main.js
+
+--------------------------------------------------------------------------------
+3. THÔNG TIN TRUY CẬP VÀ KIỂM TRA HỆ THỐNG
+--------------------------------------------------------------------------------
+Sau khi tất cả dịch vụ và cổng giao tiếp khởi chạy thành công:
+
+- Giao diện Web Portal:
+  Truy cập địa chỉ: http://localhost:4200
+  (Cổng giao diện chung tích hợp các Portal: Student Portal, Instructor Portal, Admin Portal).
+
+- API Gateway & Swagger Tài liệu API:
+  Truy cập địa chỉ: http://localhost:3000
+  (Cổng Gateway chính điều phối toàn bộ các backend microservices).
+
+- Trình duyệt Apache Guacamole (Remote Desktop):
+  Kiểm tra kết nối Guacamole cục bộ tại:
+  http://localhost:8080/guacamole/
+================================================================================
+
